@@ -1,0 +1,11 @@
+2026-05-06 12:05:16.702 -03:00 [INF] Executed DbCommand (27ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2026-05-06 12:05:16.773 -03:00 [INF] Database connection established
+2026-05-06 12:05:17.086 -03:00 [INF] API started successfully
+2026-05-06 12:05:17.112 -03:00 [INF] User profile is available. Using 'C:\Users\Jessica\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-05-06 12:05:17.129 -03:00 [INF] Creating key {e334631b-0b1c-4fa3-bdec-a8d85b84a254} with creation date 2026-05-06 15:05:17Z, activation date 2026-05-06 15:05:17Z, and expiration date 2026-08-04 15:05:17Z.
+2026-05-06 12:05:17.156 -03:00 [INF] Writing data to file 'C:\Users\Jessica\AppData\Local\ASP.NET\DataProtection-Keys\key-e334631b-0b1c-4fa3-bdec-a8d85b84a254.xml'.
+2026-05-06 12:05:17.261 -03:00 [INF] Now listening on: http://localhost:5274
+2026-05-06 12:05:17.263 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-05-06 12:05:17.264 -03:00 [INF] Hosting environment: Development
+2026-05-06 12:05:17.265 -03:00 [INF] Content root path: C:\Users\Jessica\Documents\CameraAccessAPI

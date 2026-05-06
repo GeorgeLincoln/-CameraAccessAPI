@@ -1,10 +1,12 @@
 using CameraAccessAPI.Application.DTOs;
 using CameraAccessAPI.Application.Interfaces;
 using CameraAccessAPI.Infrastructure.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CameraAccessAPI.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("watch")]
 public class WatchController : ControllerBase

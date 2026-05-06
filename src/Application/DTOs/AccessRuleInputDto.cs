@@ -1,7 +1,11 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace CameraAccessAPI.Application.DTOs;
 
 public sealed class AccessRuleInputDto
 {
+    [Required(ErrorMessage = "O ID do usuário é obrigatório.")]
+    [MaxLength(50)]
     public string UserId { get; set; } = default!;
     public Guid CameraId { get; set; }
     public bool Allowed { get; set; } = true;

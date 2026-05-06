@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Serilog;
 using AspNetCoreRateLimit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +50,15 @@ void ConfigureServices(WebApplicationBuilder builder)
 {
     var configuration = builder.Configuration;
 
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("CorsPolicy",
+            builder => builder
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
+    });
+
     builder.Services.AddControllers();
 
     builder.Services.AddEndpointsApiExplorer();
@@ -83,6 +95,26 @@ void ConfigureServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<ICameraService, CameraService>();
     builder.Services.AddScoped<IAccessValidationService, AccessValidationService>();
     builder.Services.AddSingleton<IJwtService, JwtService>();
+
+    var jwtKey = configuration["Jwt:Key"];
+    if (string.IsNullOrEmpty(jwtKey)) throw new InvalidOperationException("Jwt:Key is missing.");
+
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = configuration["Jwt:Issuer"],
+                ValidAudience = configuration["Jwt:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            };
+        });
+
+    builder.Services.AddAuthorization();
 
     builder.Services.AddMemoryCache();
     builder.Services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));
@@ -143,6 +175,11 @@ void ConfigureMiddleware(WebApplication app)
     app.UseMiddleware<CameraAccessAPI.Api.Middlewares.ExceptionMiddleware>();
 
     app.UseHttpsRedirection();
+
+    app.UseCors("CorsPolicy");
+
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     app.MapControllers();
 }

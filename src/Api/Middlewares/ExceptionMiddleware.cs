@@ -9,11 +9,13 @@ public class ExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionMiddleware> _logger;
+    private readonly IWebHostEnvironment _env;
 
-    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
+    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger, IWebHostEnvironment env)
     {
         _next = next;
         _logger = logger;
+        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -40,7 +42,7 @@ public class ExceptionMiddleware
         }
     }
 
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception, string correlationId)
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception, string correlationId)
     {
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
@@ -50,16 +52,27 @@ public class ExceptionMiddleware
         var message = GetUserFacingMessage(root);
         var suggestions = GetDebugSuggestions(root);
 
-        var result = new
+        if (_env.IsDevelopment())
         {
-            error = message,
-            code = errorCode,
-            correlationId,
-            details = root.Message,
-            suggestions = suggestions
-        };
-
-        return context.Response.WriteAsJsonAsync(result);
+            var devResult = new
+            {
+                error = message,
+                code = errorCode,
+                correlationId,
+                details = root.Message,
+                suggestions = suggestions
+            };
+            await context.Response.WriteAsJsonAsync(devResult);
+        }
+        else
+        {
+            var prodResult = new
+            {
+                error = "Ocorreu um erro interno no servidor.",
+                correlationId
+            };
+            await context.Response.WriteAsJsonAsync(prodResult);
+        }
     }
 
     private static Exception GetInnermostException(Exception exception)

@@ -1,10 +1,12 @@
 using CameraAccessAPI.Application.DTOs;
 using CameraAccessAPI.Infrastructure.Persistence.Contexts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CameraAccessAPI.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/access-logs")]
 public class AccessLogsController : ControllerBase

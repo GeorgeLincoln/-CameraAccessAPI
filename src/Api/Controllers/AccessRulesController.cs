@@ -1,9 +1,11 @@
 using CameraAccessAPI.Application.DTOs;
 using CameraAccessAPI.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CameraAccessAPI.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("access-rules")]
 public class AccessRulesController : ControllerBase

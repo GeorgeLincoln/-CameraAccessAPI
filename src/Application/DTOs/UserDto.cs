@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace CameraAccessAPI.Application.DTOs;
 
@@ -16,7 +17,11 @@ public class UserDto
 
 public class UserInputDto
 {
+    [Required(ErrorMessage = "O nome é obrigatório.")]
+    [MaxLength(150, ErrorMessage = "O nome não pode exceder 150 caracteres.")]
     public string Name { get; set; } = default!;
+
+    [MaxLength(50, ErrorMessage = "O documento não pode exceder 50 caracteres.")]
     public string? Document { get; set; }
     public bool Active { get; set; } = true;
     public List<Guid> CameraIds { get; set; } = new();

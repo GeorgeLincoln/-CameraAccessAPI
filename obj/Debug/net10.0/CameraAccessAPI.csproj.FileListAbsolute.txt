@@ -142,3 +142,4 @@ C:\Users\Jessica\Documents\CameraAccessAPI\obj\Debug\net10.0\CameraAccessAPI.pdb
 C:\Users\Jessica\Documents\CameraAccessAPI\obj\Debug\net10.0\CameraAccessAPI.genruntimeconfig.cache
 C:\Users\Jessica\Documents\CameraAccessAPI\obj\Debug\net10.0\ref\CameraAccessAPI.dll
 C:\Users\Jessica\Documents\CameraAccessAPI\obj\Debug\net10.0\CameraAccessAPI.sourcelink.json
+C:\Users\Jessica\Documents\CameraAccessAPI\bin\Debug\net10.0\appsettings.Development.json
