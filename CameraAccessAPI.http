@@ -1,0 +1,11 @@
+@CameraAccessAPI_HostAddress = http://localhost:5274
+
+GET {{CameraAccessAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+GET {{CameraAccessAPI_HostAddress}}/watch/testuser
+Accept: application/json
+
+###

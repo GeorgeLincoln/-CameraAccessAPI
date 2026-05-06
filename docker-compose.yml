@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: camera_access_db
+    environment:
+      POSTGRES_DB: CameraAccessDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 3421Post.
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: camera_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+  mediamtx:
+    image: bluenviron/mediamtx:1
+    container_name: camera_mediamtx
+    ports:
+      - "8554:8554"
+      - "8888:8888"
+      - "8889:8889"
+    environment:
+      MTX_RTSPTRANSPORTS: tcp
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml
+
+volumes:
+  postgres_data:
+  pgadmin_data:

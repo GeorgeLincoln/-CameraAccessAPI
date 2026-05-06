@@ -1,0 +1,12 @@
+logLevel: info
+webrtcAddress: :8889
+rtmpAddress: :1935
+hlsAddress: :8888
+rtspAddress: :8554
+rtspsAddress: :8322
+rtpAddress: :8000
+rtcpAddress: :8001
+
+paths:
+  test:
+    source: rtsp://127.0.0.1:8554/test
