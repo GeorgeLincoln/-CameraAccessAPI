@@ -4,7 +4,7 @@ namespace CameraAccessAPI.Domain.Interfaces;
 
 public interface IAccessRuleRepository
 {
-    Task<IEnumerable<AccessRule>> GetRulesAsync(string userId, string camera);
+    Task<IEnumerable<AccessRule>> GetRulesAsync(Guid userId, string camera);
     Task<IEnumerable<AccessRule>> GetAllAsync();
     Task<AccessRule?> GetByIdAsync(Guid id);
     Task<Camera?> GetCameraByIdAsync(Guid cameraId);

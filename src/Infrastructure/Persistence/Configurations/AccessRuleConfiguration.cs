@@ -13,10 +13,22 @@ public class AccessRuleConfiguration : IEntityTypeConfiguration<AccessRule>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.UserId)
-            .IsRequired()
-            .HasMaxLength(100);
+            .IsRequired();
 
         builder.Property(x => x.Allowed)
+            .IsRequired();
+            
+        builder.Property(x => x.Active)
+            .IsRequired()
+            .HasDefaultValue(true);
+
+        builder.Property(x => x.StartTime)
+            .IsRequired();
+
+        builder.Property(x => x.EndTime)
+            .IsRequired();
+
+        builder.Property(x => x.DaysOfWeek)
             .IsRequired();
 
         builder.Property(x => x.CreatedAt)
@@ -29,13 +41,10 @@ public class AccessRuleConfiguration : IEntityTypeConfiguration<AccessRule>
             .WithMany(c => c.AccessRules)
             .HasForeignKey(x => x.CameraId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(x => x.Days)
-            .WithOne(d => d.AccessRule)
-            .HasForeignKey(d => d.AccessRuleId);
-
-        builder.HasMany(x => x.Schedules)
-            .WithOne(s => s.AccessRule)
-            .HasForeignKey(s => s.AccessRuleId);
+            
+        builder.HasOne(x => x.User)
+            .WithMany(u => u.AccessRules)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

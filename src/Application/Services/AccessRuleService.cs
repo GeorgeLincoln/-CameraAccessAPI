@@ -38,20 +38,23 @@ public class AccessRuleService : IAccessRuleService
         if (camera == null)
             throw new InvalidOperationException("Camera não encontrada.");
 
+        if (!Guid.TryParse(rule.UserId, out var userIdGuid))
+            throw new InvalidOperationException("UserId inválido. Deve ser um GUID.");
+
+        var schedule = rule.Schedules.FirstOrDefault();
+
         var entity = new AccessRule
         {
             Id = Guid.NewGuid(),
-            UserId = rule.UserId,
+            UserId = userIdGuid,
             CameraId = camera.Id,
             Allowed = rule.Allowed,
+            Active = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            Days = rule.Days.Select(day => new AccessDay { DayOfWeek = day }).ToList(),
-            Schedules = rule.Schedules.Select(schedule => new AccessSchedule
-            {
-                StartTime = schedule.StartTime,
-                EndTime = schedule.EndTime
-            }).ToList()
+            DaysOfWeek = rule.Days.ToArray(),
+            StartTime = schedule?.StartTime ?? TimeSpan.Zero,
+            EndTime = schedule?.EndTime ?? new TimeSpan(23, 59, 59)
         };
 
         await _repository.AddAsync(entity);
@@ -70,28 +73,19 @@ public class AccessRuleService : IAccessRuleService
         if (camera == null)
             throw new InvalidOperationException("Camera não encontrada.");
 
-        existing.UserId = rule.UserId;
+        if (!Guid.TryParse(rule.UserId, out var userIdGuid))
+            throw new InvalidOperationException("UserId inválido. Deve ser um GUID.");
+
+        var schedule = rule.Schedules.FirstOrDefault();
+
+        existing.UserId = userIdGuid;
         existing.CameraId = camera.Id;
         existing.Camera = camera;
         existing.Allowed = rule.Allowed;
         existing.UpdatedAt = DateTime.UtcNow;
-
-        existing.Days.Clear();
-        foreach (var day in rule.Days)
-        {
-            existing.Days.Add(new AccessDay { DayOfWeek = day, AccessRuleId = existing.Id });
-        }
-
-        existing.Schedules.Clear();
-        foreach (var schedule in rule.Schedules)
-        {
-            existing.Schedules.Add(new AccessSchedule
-            {
-                StartTime = schedule.StartTime,
-                EndTime = schedule.EndTime,
-                AccessRuleId = existing.Id
-            });
-        }
+        existing.DaysOfWeek = rule.Days.ToArray();
+        existing.StartTime = schedule?.StartTime ?? TimeSpan.Zero;
+        existing.EndTime = schedule?.EndTime ?? new TimeSpan(23, 59, 59);
 
         await _repository.UpdateAsync(existing);
         return true;
@@ -112,16 +106,19 @@ public class AccessRuleService : IAccessRuleService
         return new AccessRuleDto
         {
             Id = rule.Id,
-            UserId = rule.UserId,
-            CameraId = rule.CameraId,
-            CameraName = rule.Camera.Name,
+            UserId = rule.UserId.ToString(),
+            CameraId = rule.CameraId ?? Guid.Empty,
+            CameraName = rule.Camera?.Name ?? "Global",
             Allowed = rule.Allowed,
-            Days = rule.Days.Select(d => d.DayOfWeek).ToList(),
-            Schedules = rule.Schedules.Select(s => new AccessScheduleDto
+            Days = rule.DaysOfWeek.ToList(),
+            Schedules = new List<AccessScheduleDto>
             {
-                StartTime = s.StartTime,
-                EndTime = s.EndTime
-            }).ToList(),
+                new AccessScheduleDto
+                {
+                    StartTime = rule.StartTime,
+                    EndTime = rule.EndTime
+                }
+            },
             CreatedAt = rule.CreatedAt,
             UpdatedAt = rule.UpdatedAt
         };

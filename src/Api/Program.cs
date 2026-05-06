@@ -79,6 +79,9 @@ void ConfigureServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<IAccessRuleRepository, AccessRuleRepository>();
     builder.Services.AddScoped<IAccessRuleService, AccessRuleService>();
     builder.Services.AddScoped<IAccessService, AccessService>();
+    builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<ICameraService, CameraService>();
+    builder.Services.AddScoped<IAccessValidationService, AccessValidationService>();
     builder.Services.AddSingleton<IJwtService, JwtService>();
 
     builder.Services.AddMemoryCache();

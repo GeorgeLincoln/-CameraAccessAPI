@@ -19,7 +19,7 @@ public class AccessRuleRepository : IAccessRuleRepository
     }
 
     // 🔥 MÉTODO PRINCIPAL (usado pelo AccessService)
-    public async Task<IEnumerable<AccessRule>> GetRulesAsync(string userId, string camera)
+    public async Task<IEnumerable<AccessRule>> GetRulesAsync(Guid userId, string camera)
     {
         try
         {
@@ -30,11 +30,9 @@ public class AccessRuleRepository : IAccessRuleRepository
             var rules = await _context.AccessRules
                 .AsNoTracking()
                 .Include(r => r.Camera)
-                .Include(r => r.Days)
-                .Include(r => r.Schedules)
                 .Where(r =>
                     r.UserId == userId &&
-                    r.Camera.Name == camera)
+                    (r.CameraId == null || r.Camera!.Name == camera))
                 .ToListAsync();
 
             _logger.LogDebug(
@@ -62,8 +60,6 @@ public class AccessRuleRepository : IAccessRuleRepository
             return await _context.AccessRules
                 .AsNoTracking()
                 .Include(r => r.Camera)
-                .Include(r => r.Days)
-                .Include(r => r.Schedules)
                 .ToListAsync();
         }
         catch (Exception ex)
@@ -79,8 +75,6 @@ public class AccessRuleRepository : IAccessRuleRepository
         {
             return await _context.AccessRules
                 .Include(r => r.Camera)
-                .Include(r => r.Days)
-                .Include(r => r.Schedules)
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
         catch (Exception ex)

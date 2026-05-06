@@ -18,5 +18,27 @@ public class CameraConfiguration : IEntityTypeConfiguration<Camera>
 
         builder.HasIndex(x => x.Name)
             .IsUnique();
+
+        builder.Property(x => x.Location)
+            .HasMaxLength(200);
+
+        builder.Property(x => x.RtspUrl)
+            .HasMaxLength(500);
+
+        builder.Property(x => x.Active)
+            .IsRequired();
+
+        builder.Property(x => x.Status)
+            .IsRequired();
+            
+        builder.HasMany(x => x.AccessRules)
+            .WithOne(ar => ar.Camera!)
+            .HasForeignKey(ar => ar.CameraId)
+            .OnDelete(DeleteBehavior.Cascade);
+            
+        builder.HasMany(x => x.AccessLogs)
+            .WithOne(al => al.Camera)
+            .HasForeignKey(al => al.CameraId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
