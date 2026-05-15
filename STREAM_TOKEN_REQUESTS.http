@@ -1,0 +1,269 @@
+### 🔐 Stream Token Security - HTTP Requests
+
+## Variables
+@baseUrl = http://localhost:5001
+@mediaUrl = http://localhost:8888
+@userId = f47ac10b-58cc-4372-a567-0e02b2c3d479
+@cameraName = test
+@token = 
+
+---
+
+## ✅ TEST 1: Get Stream URL with Valid Token
+
+### Request
+GET {{baseUrl}}/watch?userId={{userId}}&camera={{cameraName}}
+
+### Expected Response (200 OK)
+# Response should contain:
+# - status: "ok"
+# - streamUrl: "http://localhost:8888/test?token=eyJhbGc..."
+# - expiresInSeconds: 60
+
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+---
+
+## 2️⃣ Access Stream with Valid Token
+
+### Request
+GET {{mediaUrl}}/{{cameraName}}?token={{token}}
+
+### Expected Response (200 OK)
+# MediaMTX internally:
+# 1. Intercepts request
+# 2. Calls: POST /api/access/stream/validate?token={{token}}&stream={{cameraName}}&ip=127.0.0.1
+# 3. Backend validates and returns 200 OK
+# 4. MediaMTX allows access
+
+---
+
+## 3️⃣ Test: Token Validation Directly
+
+### Backend Validation Endpoint
+POST {{baseUrl}}/api/access/stream/validate
+Content-Type: application/json
+Query: ?token={{token}}&stream={{cameraName}}&ip=127.0.0.1
+
+### Response (200 OK)
+{
+  "status": "ok"
+}
+
+---
+
+## ❌ TEST 4: Access Without Token (Should be Blocked)
+
+### Request
+GET {{mediaUrl}}/{{cameraName}}
+
+### Expected Response (401 Unauthorized)
+# MediaMTX calls backend with empty token
+# Backend returns 401
+# MediaMTX blocks access
+
+---
+
+## ❌ TEST 5: Access with Tampered Token (Should be Blocked)
+
+### Request
+GET {{mediaUrl}}/{{cameraName}}?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...XXXXX
+
+### Expected Response (401 Unauthorized)
+# Token signature is invalid
+# StreamTokenService validates and rejects
+# Backend returns 401
+# MediaMTX blocks access
+
+---
+
+## ❌ TEST 6: Access with Wrong Stream Name
+
+### Request (Token for "test", access "garage")
+GET {{mediaUrl}}/garage?token={{token}}
+
+### Expected Response (401 Unauthorized)
+# Token claim "camera": "test"
+# Request stream: "garage"
+# Mismatch → Rejected
+
+---
+
+## 📋 TEST 7: Validate Stream Token Manually
+
+### Request
+POST {{baseUrl}}/api/access/stream/validate
+Query: ?token={{token}}&stream={{cameraName}}&ip=127.0.0.1&path=/test
+
+### Response (200 OK)
+{
+  "allowed": true,
+  "reason": "Access granted",
+  "userId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "cameraId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "processedAt": "2026-05-06T12:34:56.789Z"
+}
+
+---
+
+## 🔐 TEST 8: Token Should Expire (Wait 65 seconds)
+
+### Step 1: Get token
+GET {{baseUrl}}/watch?userId={{userId}}&camera={{cameraName}}
+# Note the expiresInSeconds: 60
+
+### Step 2: Wait 65 seconds
+# (outside the time window for the token)
+
+### Step 3: Try to access with expired token
+GET {{mediaUrl}}/{{cameraName}}?token={{token}}
+
+### Expected Response (401 Unauthorized)
+# Token is expired
+# StreamTokenService.ValidateAndExtractClaimsAsync() returns null
+# Backend returns 401
+
+---
+
+## 📊 TEST 9: Check Audit Logs
+
+### SQL Query
+SELECT 
+  timestamp,
+  user_id,
+  camera_id,
+  allowed,
+  reason,
+  source
+FROM access_logs
+ORDER BY timestamp DESC
+LIMIT 10;
+
+### Expected Results
+# All stream access attempts are logged
+# Source: MediaMTX_Stream_127.0.0.1 (or client IP)
+# Both successful and failed attempts recorded
+
+---
+
+## 🛡️ TEST 10: Revoke Token (Future Feature)
+
+### Request (when implemented)
+POST {{baseUrl}}/api/access/revoke
+Content-Type: application/json
+
+{
+  "tokenId": "jti-value-from-jwt"
+}
+
+### After Revocation
+GET {{mediaUrl}}/{{cameraName}}?token={{token}}
+
+### Expected Response (401 Unauthorized)
+# Token is revoked
+# IsTokenRevokedAsync() returns true
+# Access denied
+
+---
+
+## 📝 WORKFLOW
+
+### Complete Security Flow
+
+```
+1. Client requests stream access:
+   GET /watch?userId=USER&camera=CAMERA
+
+2. Backend validates:
+   ✓ User exists and is active
+   ✓ Camera exists and is active
+   ✓ User-Camera link exists
+   ✓ Access rules allow (day/time)
+
+3. If valid, generate JWT:
+   ✓ Contains: sub (userId), camera (name)
+   ✓ Expires: 60 seconds
+   ✓ Signed with secret key
+
+4. Return stream URL with token:
+   http://localhost:8888/CAMERA?token=JWT
+
+5. Client accesses stream:
+   GET http://localhost:8888/CAMERA?token=JWT
+
+6. MediaMTX intercepts and validates:
+   POST /api/access/stream/validate?token=JWT&stream=CAMERA
+
+7. Backend validates JWT:
+   ✓ Check signature (secret key)
+   ✓ Check expiration (< 60s)
+   ✓ Extract claims (userId, camera)
+   ✓ Verify user exists and active
+   ✓ Verify camera exists and active
+   ✓ Verify user-camera link
+   ✓ Verify access rules (day/time)
+
+8. Respond:
+   ✓ 200 OK → MediaMTX allows access
+   ✓ 401 Unauthorized → MediaMTX blocks access
+
+9. Log audit entry:
+   INSERT INTO access_logs (user_id, camera_id, allowed, reason, source)
+```
+
+---
+
+## 🚀 Quick Test Script
+
+```bash
+#!/bin/bash
+
+# 1. Get token
+echo "📋 Step 1: Getting token..."
+RESPONSE=$(curl -s "http://localhost:5001/watch?userId=test-user&camera=test")
+STREAM_URL=$(echo $RESPONSE | jq -r '.streamUrl')
+TOKEN=$(echo $STREAM_URL | sed 's/.*token=//')
+
+echo "✅ Token obtained: $TOKEN"
+echo "   Stream URL: $STREAM_URL"
+
+# 2. Validate token directly
+echo ""
+echo "📋 Step 2: Validating token..."
+curl -s "http://localhost:5001/api/access/stream/validate?token=$TOKEN&stream=test&ip=127.0.0.1" | jq
+
+# 3. Try expired token
+echo ""
+echo "📋 Step 3: Waiting 65 seconds for token to expire..."
+sleep 65
+
+echo ""
+echo "📋 Step 4: Validating expired token (should fail)..."
+curl -s "http://localhost:5001/api/access/stream/validate?token=$TOKEN&stream=test&ip=127.0.0.1" | jq
+
+echo ""
+echo "✅ Test completed!"
+```
+
+---
+
+## 🔒 Security Validation Checklist
+
+- [ ] Token obtained successfully
+- [ ] Token validated successfully  
+- [ ] Stream accessible with valid token
+- [ ] Token expires after 60 seconds
+- [ ] Expired token blocks access
+- [ ] Tampered token blocks access
+- [ ] Token without secret fails
+- [ ] Wrong stream name fails
+- [ ] Logs record all attempts
+- [ ] 200 OK allows, 401 blocks
+- [ ] No direct access possible
+- [ ] All claims verified
+
+---
+
+**Created**: 2026-05-06
+**Version**: 1.0.0
+**Status**: Ready for testing

@@ -1,4 +1,17 @@
 logLevel: info
+
+# 🔐 AUTENTICAÇÃO HTTP: Validação obrigatória de acesso
+# Toda tentativa de acesso dispara uma requisição para o backend
+# O backend valida token JWT e retorna 200 OK (permitir) ou 401 (bloquear)
+authMethods:
+  - http
+
+# 🌐 Endpoint do backend para validação de token
+# MediaMTX chamará este endpoint para cada tentativa de acesso.
+# Segurança: inclua hookSecret e valide no backend (StreamValidation:HookSecret).
+authHTTPAddress: http://host.docker.internal:5001/api/access/stream/validate?hookSecret=local-mediamtx-hook-secret-2026
+
+# 📡 Portas
 webrtcAddress: :8889
 rtmpAddress: :1935
 hlsAddress: :8888
@@ -7,6 +20,34 @@ rtspsAddress: :8322
 rtpAddress: :8000
 rtcpAddress: :8001
 
+# 🎥 Configuração de paths (streams)
 paths:
+  # Stream "test" será acessível via:
+  # http://localhost:8888/test?token=JWT
   test:
+    # Origem do stream (RTSP source)
     source: rtsp://127.0.0.1:8554/test
+    
+    # ✅ Permitir leitura (playback)
+    # Requer validação via auth hook HTTP
+    readUser: ""
+    readPass: ""
+    
+    # ❌ Bloquear escrita (push)
+    # Não queremos que clientes façam push para este stream
+    writeUser: "_"
+    writePass: "_"
+
+# 🔐 SEGURANÇA: Configurações globais
+# - Nenhuma autenticação adicional (todo acesso via token)
+# - Logs de acesso para auditoria
+# - Timeout curto para validação
+
+rtmpSettings:
+  timeout: 30s
+
+hlsSettings:
+  timeout: 30s
+
+webrtcSettings:
+  timeout: 30s

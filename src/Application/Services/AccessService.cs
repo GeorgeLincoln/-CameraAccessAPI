@@ -18,20 +18,14 @@ public class AccessService : IAccessService
     }
 
     public async Task<bool> HasAccessAsync(
-        string userId,
+        Guid userId,
         string camera,
         DateTime now)
     {
-        if (!Guid.TryParse(userId, out var userIdGuid))
-        {
-            _logger.LogWarning("Invalid UserId format: {UserId}. Must be a GUID.", userId);
-            return false;
-        }
-
         var day = (int)now.DayOfWeek;
         var time = now.TimeOfDay;
 
-        var rules = await _repository.GetRulesAsync(userIdGuid, camera);
+        var rules = await _repository.GetRulesAsync(userId, camera);
 
         if (rules == null || !rules.Any())
         {
@@ -41,16 +35,15 @@ public class AccessService : IAccessService
 
         foreach (var rule in rules)
         {
-            if (!rule.Allowed || !rule.Active)
+            if (!rule.Allowed)
                 continue;
 
-            // Optional: If DaysOfWeek is empty, it means all days.
-            // But to keep it similar, we check if it contains the day.
-            var validDay = rule.DaysOfWeek == null || !rule.DaysOfWeek.Any() || rule.DaysOfWeek.Contains(day);
+            var validDay = rule.Days.Any(d => d.Day == day);
             if (!validDay)
                 continue;
 
-            var validTime = time >= rule.StartTime && time <= rule.EndTime;
+            var validTime = rule.Schedules.Any(s =>
+                time >= s.StartTime && time <= s.EndTime);
 
             if (validTime)
                 return true;

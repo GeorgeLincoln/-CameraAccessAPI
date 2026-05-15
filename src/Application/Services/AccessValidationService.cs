@@ -43,32 +43,65 @@ public class AccessValidationService : IAccessValidationService
             return new AccessValidationResponseDto { Allowed = false, Reason = "Usuário não vinculado à câmera" };
         }
 
+       
+
         var rules = await _context.AccessRules
-            .AsNoTracking()
-            .Where(r => r.UserId == request.UserId && (r.CameraId == null || r.CameraId == request.CameraId))
-            .ToListAsync();
+    .AsNoTracking()
+    .Include(r => r.Days)
+    .Include(r => r.Schedules)
+    .Where(r =>
+        r.UserId == request.UserId &&
+        r.CameraId == request.CameraId)
+    .ToListAsync();
 
-        if (!rules.Any())
-        {
-            await LogAccess(request.UserId, request.CameraId, timestamp, false, "Nenhuma regra de acesso configurada");
-            return new AccessValidationResponseDto { Allowed = false, Reason = "Acesso negado: Sem regras" };
-        }
+if (!rules.Any())
+{
+    await LogAccess(
+        request.UserId,
+        request.CameraId,
+        timestamp,
+        false,
+        "Nenhuma regra encontrada");
 
-        var dayOfWeek = (int)timestamp.DayOfWeek;
-        var timeOfDay = timestamp.TimeOfDay;
+    return new AccessValidationResponseDto
+    {
+        Allowed = false,
+        Reason = "Sem regras de acesso"
+    };
+}
 
-        foreach (var rule in rules.Where(r => r.Active && r.Allowed))
-        {
-            var validDay = rule.DaysOfWeek == null || !rule.DaysOfWeek.Any() || rule.DaysOfWeek.Contains(dayOfWeek);
-            if (!validDay) continue;
+var currentDay = timestamp.DayOfWeek;
+var currentTime = timestamp.TimeOfDay;
 
-            var validTime = timeOfDay >= rule.StartTime && timeOfDay <= rule.EndTime;
-            if (validTime)
-            {
-                await LogAccess(request.UserId, request.CameraId, timestamp, true, "Acesso permitido por regra");
-                return new AccessValidationResponseDto { Allowed = true, Reason = "Acesso permitido" };
-            }
-        }
+foreach (var rule in rules.Where(r => r.Active && r.Allowed))
+{
+    var validDay = rule.Days
+        .Any(d => d.Day == (int)currentDay);
+
+    if (!validDay)
+        continue;
+
+    var validTime = rule.Schedules
+        .Any(schedule =>
+            currentTime >= schedule.StartTime &&
+            currentTime <= schedule.EndTime);
+
+    if (!validTime)
+        continue;
+
+    await LogAccess(
+        request.UserId,
+        request.CameraId,
+        timestamp,
+        true,
+        "Acesso permitido");
+
+    return new AccessValidationResponseDto
+    {
+        Allowed = true,
+        Reason = "Acesso permitido"
+    };
+}
 
         await LogAccess(request.UserId, request.CameraId, timestamp, false, "Fora do horário permitido");
         return new AccessValidationResponseDto { Allowed = false, Reason = "Acesso negado: Fora do horário permitido" };

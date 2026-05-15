@@ -2,5 +2,5 @@ namespace CameraAccessAPI.Application.Interfaces;
 
 public interface IJwtService
 {
-    string GenerateToken(string userId, string camera);
+    string GenerateToken(Guid userId, string camera);
 }

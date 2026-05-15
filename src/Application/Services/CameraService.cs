@@ -37,12 +37,11 @@ public class CameraService : ICameraService
         {
             Id = Guid.NewGuid(),
             Name = dto.Name,
-            Description = dto.Description,
             Location = dto.Location,
             RtspUrl = dto.RtspUrl,
             Active = dto.Active,
-            Status = CameraStatus.Unknown,
-            CreatedAt = DateTime.UtcNow
+            Status = 0,
+            LastSeenAt = null
         };
 
         _context.Cameras.Add(camera);
@@ -57,7 +56,6 @@ public class CameraService : ICameraService
         if (camera == null) return false;
 
         camera.Name = dto.Name;
-        camera.Description = dto.Description;
         camera.Location = dto.Location;
         camera.RtspUrl = dto.RtspUrl;
         camera.Active = dto.Active;
@@ -87,12 +85,10 @@ public class CameraService : ICameraService
         {
             Id = camera.Id,
             Name = camera.Name,
-            Description = camera.Description,
             Location = camera.Location,
             RtspUrl = camera.RtspUrl,
             Active = camera.Active,
             LastSeenAt = camera.LastSeenAt,
-            Status = (int)camera.Status
         };
     }
 }

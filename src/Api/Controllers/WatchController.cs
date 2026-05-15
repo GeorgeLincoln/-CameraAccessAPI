@@ -36,13 +36,16 @@ public class WatchController : ControllerBase
         if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(camera))
             return BadRequest("userId e camera são obrigatórios");
 
+        if (!Guid.TryParse(userId, out var userIdGuid))
+            return BadRequest("userId deve ser um GUID válido");
+
         var now = DateTime.UtcNow;
 
         _logger.LogInformation(
             "Access request - User: {UserId}, Camera: {Camera}",
             userId, camera);
 
-        var hasAccess = await _accessService.HasAccessAsync(userId, camera, now);
+        var hasAccess = await _accessService.HasAccessAsync(userIdGuid, camera, now);
 
         if (!hasAccess)
         {
@@ -54,7 +57,7 @@ public class WatchController : ControllerBase
         }
 
         // Token vinculado à câmera (correto)
-        var token = _jwtService.GenerateToken(userId, camera);
+        var token = _jwtService.GenerateToken(userIdGuid, camera);
 
         var streamUrl = $"http://localhost:8888/{camera}?token={token}";
 
@@ -62,10 +65,10 @@ public class WatchController : ControllerBase
             "Access granted - User: {UserId}, Camera: {Camera}",
             userId, camera);
 
-        return Ok(new AccessResponseDto
+        return Ok(new
         {
-            Stream = streamUrl,
-            ExpiresInSeconds = 300
+            stream = streamUrl,
+            expiresInSeconds = 300
         });
     }
 }

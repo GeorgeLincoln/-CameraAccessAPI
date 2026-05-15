@@ -1,185 +1,126 @@
-using CameraAccessAPI.Application.Interfaces;
-using CameraAccessAPI.Application.Services;
-using CameraAccessAPI.Domain.Interfaces;
 using CameraAccessAPI.Infrastructure.Persistence.Contexts;
 using CameraAccessAPI.Infrastructure.Persistence.Repositories;
+using CameraAccessAPI.Application.Services;
+using CameraAccessAPI.Domain.Interfaces;
 using CameraAccessAPI.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
 using Serilog;
 using AspNetCoreRateLimit;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-ConfigureLogging(builder);
-ConfigureServices(builder);
+#region LOGGING (Serilog)
+
+builder.Host.UseSerilog((context, config) =>
+{
+    config
+        .MinimumLevel.Information()
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
+        .WriteTo.Console()
+        .WriteTo.File(
+            "logs/log-.txt",
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 7);
+});
+
+#endregion
+
+#region SERVICES
+
+builder.Services.AddControllers();
+
+// Swagger (OpenAPI)
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Camera Access API",
+        Version = "v1",
+        Description = "API para controle de acesso por câmera com validação de horário"
+    });
+});
+
+// Database (PostgreSQL + Retry Policy)
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    options.UseNpgsql(connectionString, npgsql =>
+    {
+        npgsql.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorCodesToAdd: null);
+    });
+});
+
+// Repositories
+builder.Services.AddScoped<IAccessRuleRepository, AccessRuleRepository>();
+
+// Services
+builder.Services.AddScoped<AccessService>();
+builder.Services.AddSingleton<JwtService>();
+
+// Rate Limiting
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
+builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+
+#endregion
 
 var app = builder.Build();
 
-await EnsureDatabaseConnectionAsync(app);
+#region DATABASE CHECK (Fail Fast)
 
-ConfigureMiddleware(app);
-
-Log.Information("API started successfully");
-
-app.Run();
-
-
-// ------------------------ CONFIGURATION ------------------------
-
-void ConfigureLogging(WebApplicationBuilder builder)
+using (var scope = app.Services.CreateScope())
 {
-    builder.Host.UseSerilog((context, config) =>
-    {
-        config
-            .MinimumLevel.Information()
-            .Enrich.FromLogContext()
-            .Enrich.WithProperty("Environment", context.HostingEnvironment.EnvironmentName)
-            .WriteTo.Console()
-            .WriteTo.File(
-                "logs/log-.txt",
-                rollingInterval: RollingInterval.Day,
-                retainedFileCountLimit: 7);
-    });
-}
-
-void ConfigureServices(WebApplicationBuilder builder)
-{
-    var configuration = builder.Configuration;
-
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("CorsPolicy",
-            builder => builder
-                .AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader());
-    });
-
-    builder.Services.AddControllers();
-
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen(options =>
-    {
-        options.SwaggerDoc("v1", new OpenApiInfo
-        {
-            Title = "Camera Access API",
-            Version = "v1",
-            Description = "API for camera-based access control with schedule validation"
-        });
-    });
-
-    var connectionString = configuration.GetConnectionString("DefaultConnection");
-
-    if (string.IsNullOrWhiteSpace(connectionString))
-        throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
-
-    builder.Services.AddDbContext<AppDbContext>(options =>
-    {
-        options.UseNpgsql(connectionString, npgsql =>
-        {
-            npgsql.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(5),
-                errorCodesToAdd: null);
-        });
-    });
-
-    builder.Services.AddScoped<IAccessRuleRepository, AccessRuleRepository>();
-    builder.Services.AddScoped<IAccessRuleService, AccessRuleService>();
-    builder.Services.AddScoped<IAccessService, AccessService>();
-    builder.Services.AddScoped<IUserService, UserService>();
-    builder.Services.AddScoped<ICameraService, CameraService>();
-    builder.Services.AddScoped<IAccessValidationService, AccessValidationService>();
-    builder.Services.AddSingleton<IJwtService, JwtService>();
-
-    var jwtKey = configuration["Jwt:Key"];
-    if (string.IsNullOrEmpty(jwtKey)) throw new InvalidOperationException("Jwt:Key is missing.");
-
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = configuration["Jwt:Issuer"],
-                ValidAudience = configuration["Jwt:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-            };
-        });
-
-    builder.Services.AddAuthorization();
-
-    builder.Services.AddMemoryCache();
-    builder.Services.Configure<IpRateLimitOptions>(configuration.GetSection("IpRateLimiting"));
-    builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
-    builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
-    builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
-    builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
-}
-
-
-// ------------------------ DATABASE ------------------------
-
-async Task EnsureDatabaseConnectionAsync(WebApplication app)
-{
-    using var scope = app.Services.CreateScope();
-
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    const int maxRetries = 10;
-    var delay = TimeSpan.FromSeconds(3);
-
-    for (int attempt = 1; attempt <= maxRetries; attempt++)
+    try
     {
-        try
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        if (!await db.Database.CanConnectAsync())
         {
-            if (await db.Database.CanConnectAsync())
-            {
-                logger.LogInformation("Database connection established");
-                return;
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Database connection attempt {Attempt} failed", attempt);
+            throw new Exception("Database unreachable");
         }
 
-        await Task.Delay(delay);
+        logger.LogInformation("✅ PostgreSQL conectado com sucesso");
     }
-
-    logger.LogCritical("Database connection failed after {Retries} attempts", maxRetries);
-    throw new Exception("Database unavailable");
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "❌ Falha crítica ao conectar com o banco de dados");
+        throw; // interrompe a aplicação
+    }
 }
 
+#endregion
 
-// ------------------------ MIDDLEWARE ------------------------
+#region MIDDLEWARE
 
-void ConfigureMiddleware(WebApplication app)
+if (app.Environment.IsDevelopment())
 {
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseSwagger();
-        app.UseSwaggerUI();
-    }
-
-    app.UseIpRateLimiting();
-
-    app.UseMiddleware<CameraAccessAPI.Api.Middlewares.ExceptionMiddleware>();
-
-    app.UseHttpsRedirection();
-
-    app.UseCors("CorsPolicy");
-
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    app.MapControllers();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
+// Segurança
+app.UseIpRateLimiting();
+
+// Tratamento global de erro
+app.UseMiddleware<CameraAccessAPI.Api.Middlewares.ExceptionMiddleware>();
+
+app.UseHttpsRedirection();
+
+app.MapControllers();
+
+#endregion
+
+Log.Information("🚀 API iniciada com sucesso");
+app.Run();

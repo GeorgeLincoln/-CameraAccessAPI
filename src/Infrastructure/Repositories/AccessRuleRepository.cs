@@ -30,9 +30,11 @@ public class AccessRuleRepository : IAccessRuleRepository
             var rules = await _context.AccessRules
                 .AsNoTracking()
                 .Include(r => r.Camera)
+                .Include(r => r.Days)
+                .Include(r => r.Schedules)
                 .Where(r =>
                     r.UserId == userId &&
-                    (r.CameraId == null || r.Camera!.Name == camera))
+                    r.Camera.Name == camera)
                 .ToListAsync();
 
             _logger.LogDebug(
@@ -60,39 +62,13 @@ public class AccessRuleRepository : IAccessRuleRepository
             return await _context.AccessRules
                 .AsNoTracking()
                 .Include(r => r.Camera)
+                .Include(r => r.Days)
+                .Include(r => r.Schedules)
                 .ToListAsync();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "❌ Erro ao consultar todas as regras");
-            throw;
-        }
-    }
-
-    public async Task<AccessRule?> GetByIdAsync(Guid id)
-    {
-        try
-        {
-            return await _context.AccessRules
-                .Include(r => r.Camera)
-                .FirstOrDefaultAsync(r => r.Id == id);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "❌ Erro ao buscar regra por id: {RuleId}", id);
-            throw;
-        }
-    }
-
-    public async Task<Camera?> GetCameraByIdAsync(Guid cameraId)
-    {
-        try
-        {
-            return await _context.Cameras.FindAsync(cameraId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "❌ Erro ao buscar câmera por id: {CameraId}", cameraId);
             throw;
         }
     }
@@ -159,6 +135,39 @@ public class AccessRuleRepository : IAccessRuleRepository
             _logger.LogError(ex,
                 "❌ Erro ao remover regra: {RuleId}",
                 id);
+            throw;
+        }
+    }
+
+    public async Task<AccessRule?> GetByIdAsync(Guid id)
+    {
+        try
+        {
+            return await _context.AccessRules
+                .AsNoTracking()
+                .Include(r => r.Camera)
+                .Include(r => r.Days)
+                .Include(r => r.Schedules)
+                .FirstOrDefaultAsync(r => r.Id == id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Erro ao obter regra por ID: {RuleId}", id);
+            throw;
+        }
+    }
+
+    public async Task<Camera?> GetCameraByIdAsync(Guid cameraId)
+    {
+        try
+        {
+            return await _context.Cameras
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == cameraId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Erro ao obter câmera por ID: {CameraId}", cameraId);
             throw;
         }
     }

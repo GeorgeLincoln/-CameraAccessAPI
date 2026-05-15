@@ -1,0 +1,16 @@
+2026-05-15 14:40:50.409 -03:00 [INF] Executed DbCommand (41ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2026-05-15 14:40:50.480 -03:00 [INF] ✅ PostgreSQL conectado com sucesso
+2026-05-15 14:40:50.579 -03:00 [INF] 🚀 API iniciada com sucesso
+2026-05-15 14:40:50.673 -03:00 [INF] Now listening on: http://localhost:5274
+2026-05-15 14:40:50.675 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-05-15 14:40:50.676 -03:00 [INF] Hosting environment: Development
+2026-05-15 14:40:50.677 -03:00 [INF] Content root path: c:\Users\Jessica\Documents\CameraAccessAPI
+2026-05-15 14:43:56.315 -03:00 [INF] Executed DbCommand (50ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2026-05-15 14:43:56.422 -03:00 [INF] ✅ PostgreSQL conectado com sucesso
+2026-05-15 14:43:56.546 -03:00 [INF] 🚀 API iniciada com sucesso
+2026-05-15 14:43:56.644 -03:00 [INF] Now listening on: http://localhost:5274
+2026-05-15 14:43:56.649 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-05-15 14:43:56.655 -03:00 [INF] Hosting environment: Development
+2026-05-15 14:43:56.658 -03:00 [INF] Content root path: C:\Users\Jessica\Documents\CameraAccessAPI

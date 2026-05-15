@@ -9,3 +9,78 @@ SELECT 1
 2026-05-06 12:05:17.263 -03:00 [INF] Application started. Press Ctrl+C to shut down.
 2026-05-06 12:05:17.264 -03:00 [INF] Hosting environment: Development
 2026-05-06 12:05:17.265 -03:00 [INF] Content root path: C:\Users\Jessica\Documents\CameraAccessAPI
+2026-05-06 12:11:01.029 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger - null null
+2026-05-06 12:11:01.102 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger - 301 0 null 74.001ms
+2026-05-06 12:11:01.108 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/index.html - null null
+2026-05-06 12:11:01.197 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/index.html - 200 null text/html;charset=utf-8 88.9938ms
+2026-05-06 12:11:01.226 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/index.css - null null
+2026-05-06 12:11:01.237 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-standalone-preset.js - null null
+2026-05-06 12:11:01.237 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-bundle.js - null null
+2026-05-06 12:11:01.238 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui.css - null null
+2026-05-06 12:11:01.277 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/index.css - 200 152 text/css 50.5428ms
+2026-05-06 12:11:01.277 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui.css - 200 26479 text/css 38.89ms
+2026-05-06 12:11:01.285 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/index.js - null null
+2026-05-06 12:11:01.316 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/index.js - 200 null application/javascript;charset=utf-8 30.826ms
+2026-05-06 12:11:01.301 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-bundle.js - 200 418181 text/javascript 63.7214ms
+2026-05-06 12:11:01.301 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-standalone-preset.js - 200 76613 text/javascript 63.4518ms
+2026-05-06 12:11:01.575 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/v1/swagger.json - null null
+2026-05-06 12:11:01.789 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 214.2482ms
+2026-05-06 12:11:10.567 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/v1/swagger.json - null null
+2026-05-06 12:11:10.589 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 22.2169ms
+2026-05-06 12:11:10.661 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/favicon.ico - null null
+2026-05-06 12:11:10.757 -03:00 [WRN] Failed to determine the https port for redirect.
+2026-05-06 12:11:10.839 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/favicon.ico - 404 0 null 178.4737ms
+2026-05-06 12:11:10.846 -03:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: GET http://localhost:5274/favicon.ico, Response status code: 404
+2026-05-06 13:07:29.969 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/v1/swagger.json - null null
+2026-05-06 13:07:30.627 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 681.8614ms
+2026-05-06 13:26:55.507 -03:00 [INF] Application is shutting down...
+2026-05-06 13:40:47.193 -03:00 [INF] Executed DbCommand (29ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2026-05-06 13:40:47.266 -03:00 [INF] ✅ PostgreSQL conectado com sucesso
+2026-05-06 13:40:47.376 -03:00 [INF] 🚀 API iniciada com sucesso
+2026-05-06 13:40:47.402 -03:00 [INF] User profile is available. Using 'C:\Users\Jessica\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-05-06 13:40:47.520 -03:00 [INF] Now listening on: http://localhost:5274
+2026-05-06 13:40:47.521 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-05-06 13:40:47.523 -03:00 [INF] Hosting environment: Development
+2026-05-06 13:40:47.524 -03:00 [INF] Content root path: C:\Users\Jessica\Documents\CameraAccessAPI
+2026-05-06 13:41:11.680 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/index.html - null null
+2026-05-06 13:41:11.819 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/index.html - 304 null null 140.5793ms
+2026-05-06 13:41:11.852 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui.css - null null
+2026-05-06 13:41:11.853 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/index.css - null null
+2026-05-06 13:41:11.854 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-bundle.js - null null
+2026-05-06 13:41:11.854 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-standalone-preset.js - null null
+2026-05-06 13:41:11.890 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-standalone-preset.js - 304 null null 35.481ms
+2026-05-06 13:41:11.890 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/index.css - 304 null null 36.7519ms
+2026-05-06 13:41:11.890 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui.css - 304 null null 39.0736ms
+2026-05-06 13:41:11.891 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-bundle.js - 304 null null 36.8856ms
+2026-05-06 13:41:11.895 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/index.js - null null
+2026-05-06 13:41:11.941 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/index.js - 304 null null 45.4101ms
+2026-05-06 13:41:12.069 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/v1/swagger.json - null null
+2026-05-06 13:41:12.071 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/favicon-32x32.png - null null
+2026-05-06 13:41:12.094 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/favicon-32x32.png - 200 628 image/png 22.4553ms
+2026-05-06 13:41:12.246 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 177.008ms
+2026-05-06 13:51:12.042 -03:00 [INF] Executed DbCommand (26ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2026-05-06 13:51:12.146 -03:00 [INF] ✅ PostgreSQL conectado com sucesso
+2026-05-06 13:51:12.237 -03:00 [INF] 🚀 API iniciada com sucesso
+2026-05-06 13:51:12.265 -03:00 [INF] User profile is available. Using 'C:\Users\Jessica\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-05-06 13:51:12.344 -03:00 [INF] Now listening on: http://localhost:5274
+2026-05-06 13:51:12.346 -03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-05-06 13:51:12.347 -03:00 [INF] Hosting environment: Development
+2026-05-06 13:51:12.348 -03:00 [INF] Content root path: C:\Users\Jessica\Documents\CameraAccessAPI
+2026-05-06 13:51:41.854 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/index.html - null null
+2026-05-06 13:51:41.992 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/index.html - 304 null null 140.4342ms
+2026-05-06 13:51:42.022 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui.css - null null
+2026-05-06 13:51:42.024 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/index.css - null null
+2026-05-06 13:51:42.024 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-standalone-preset.js - null null
+2026-05-06 13:51:42.025 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-bundle.js - null null
+2026-05-06 13:51:42.025 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/index.js - null null
+2026-05-06 13:51:42.059 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-standalone-preset.js - 304 null null 34.7617ms
+2026-05-06 13:51:42.059 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/index.css - 304 null null 34.7685ms
+2026-05-06 13:51:42.059 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui.css - 304 null null 38.5979ms
+2026-05-06 13:51:42.067 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/index.js - 304 null null 42.0933ms
+2026-05-06 13:51:42.068 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/swagger-ui-bundle.js - 304 null null 43.2297ms
+2026-05-06 13:51:42.181 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/v1/swagger.json - null null
+2026-05-06 13:51:42.196 -03:00 [INF] Request starting HTTP/1.1 GET http://localhost:5274/swagger/favicon-32x32.png - null null
+2026-05-06 13:51:42.205 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/favicon-32x32.png - 304 null null 8.2321ms
+2026-05-06 13:51:42.334 -03:00 [INF] Request finished HTTP/1.1 GET http://localhost:5274/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 152.6489ms

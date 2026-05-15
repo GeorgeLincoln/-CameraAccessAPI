@@ -11,6 +11,11 @@ public class AccessLogConfiguration : IEntityTypeConfiguration<AccessLog>
         builder.ToTable("AccessLogs");
 
         builder.HasKey(x => x.Id);
+        
+        builder.HasIndex(x => x.Timestamp)
+            .HasDatabaseName("IX_AccessLogs_Timestamp");
+        builder.HasIndex(x => new { x.UserId, x.CameraId, x.Timestamp })
+            .HasDatabaseName("IX_AccessLogs_User_Camera_Timestamp");
 
         builder.Property(x => x.Timestamp)
             .IsRequired();

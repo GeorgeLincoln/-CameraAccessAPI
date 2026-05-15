@@ -1,4 +1,3 @@
-using CameraAccessAPI.Application.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -7,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace CameraAccessAPI.Infrastructure.Security;
 
-public class JwtService : IJwtService
+public class JwtService
 {
     private readonly string _key;
     private readonly string _issuer;
