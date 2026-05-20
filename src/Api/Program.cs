@@ -6,7 +6,6 @@ using CameraAccessAPI.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using AspNetCoreRateLimit;
-using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,15 +30,18 @@ builder.Host.UseSerilog((context, config) =>
 
 builder.Services.AddControllers();
 
-// Swagger (OpenAPI)
+// 🔐 AUTENTICAÇÃO JWT (segura e completa)
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// Swagger (OpenAPI) com suporte JWT
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
+    options.SwaggerDoc("v1", new()
     {
         Title = "Camera Access API",
         Version = "v1",
-        Description = "API para controle de acesso por câmera com validação de horário"
+        Description = "API para controle de acesso por câmera com validação de horário",
     });
 });
 
@@ -62,7 +64,6 @@ builder.Services.AddScoped<IAccessRuleRepository, AccessRuleRepository>();
 
 // Services
 builder.Services.AddScoped<AccessService>();
-builder.Services.AddSingleton<JwtService>();
 
 // Rate Limiting
 builder.Services.AddMemoryCache();
@@ -107,17 +108,31 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Camera Access API v1");
+        options.DefaultModelsExpandDepth(2);
+        options.DefaultModelExpandDepth(2);
+    });
 }
 
-// Segurança
+// HTTPS redirection (CRÍTICO para produção)
+app.UseHttpsRedirection();
+
+// Segurança e Rate Limiting
 app.UseIpRateLimiting();
 
 // Tratamento global de erro
 app.UseMiddleware<CameraAccessAPI.Api.Middlewares.ExceptionMiddleware>();
 
-app.UseHttpsRedirection();
+// 🔐 PIPELINE DE AUTENTICAÇÃO (ORDEM IMPORTANTE!)
+// 1. Autenticar o usuário (valida JWT)
+app.UseAuthentication();
 
+// 2. Autorizar o usuário (verifica [Authorize])
+app.UseAuthorization();
+
+// Mapear controllers
 app.MapControllers();
 
 #endregion

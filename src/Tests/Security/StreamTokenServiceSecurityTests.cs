@@ -5,6 +5,7 @@ using CameraAccessAPI.Domain.Entities;
 using CameraAccessAPI.Infrastructure.Security;
 using CameraAccessAPI.Infrastructure.Persistence.Contexts;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -58,6 +59,22 @@ public class StreamTokenServiceSecurityTests
         _tokenService = new StreamTokenService(_configMock.Object, _loggerMock.Object);
     }
 
+    private JwtService CreateJwtService(IConfiguration config)
+    {
+        var settings = new JwtSettings
+        {
+            Key = config["Jwt:Key"] ?? "MySecretKeyForTestingPurposesOnlyMin32!!",
+            Issuer = config["Jwt:Issuer"] ?? "CameraAccessAPI",
+            Audience = config["Jwt:Audience"] ?? "CameraClients",
+            ExpiryMinutes = int.TryParse(config["Jwt:ExpiryMinutes"], out var minutes) ? minutes : 1
+        };
+
+        var jwtOptions = Options.Create(settings);
+        var logger = new Mock<ILogger<JwtService>>().Object;
+
+        return new JwtService(jwtOptions, logger);
+    }
+
     /// <summary>
     /// ✅ TEST 1: Token válido com claims corretos deve ser validado com sucesso
     /// </summary>
@@ -69,7 +86,7 @@ public class StreamTokenServiceSecurityTests
         var streamName = "test-camera";
         
         // Criar token via JwtService
-        var jwtService = new JwtService(_configMock.Object);
+        var jwtService = CreateJwtService(_configMock.Object);
         var token = jwtService.GenerateToken(userId.ToString(), streamName);
 
         // Act
@@ -90,7 +107,7 @@ public class StreamTokenServiceSecurityTests
     public async Task ValidateToken_WithTamperedToken_ReturnsFail()
     {
         // Arrange
-        var jwtService = new JwtService(_configMock.Object);
+        var jwtService = CreateJwtService(_configMock.Object);
         var token = jwtService.GenerateToken(Guid.NewGuid().ToString(), "test-camera");
         
         // Alterar token (simular ataque)
@@ -144,7 +161,7 @@ public class StreamTokenServiceSecurityTests
     public async Task ValidateToken_WithRevokedToken_ReturnsFail()
     {
         // Arrange
-        var jwtService = new JwtService(_configMock.Object);
+        var jwtService = CreateJwtService(_configMock.Object);
         var userId = Guid.NewGuid().ToString();
         var token = jwtService.GenerateToken(userId, "test-camera");
 
@@ -169,7 +186,7 @@ public class StreamTokenServiceSecurityTests
     public async Task ValidateToken_WithDifferentKey_ReturnsFail()
     {
         // Arrange - Gerar token com uma chave
-        var jwtService1 = new JwtService(_configMock.Object);
+        var jwtService1 = CreateJwtService(_configMock.Object);
         var token = jwtService1.GenerateToken(Guid.NewGuid().ToString(), "test-camera");
 
         // Configurar token service com chave diferente
@@ -354,7 +371,16 @@ public class StreamAccessValidationIntegrationTests
         context.AccessRules.Add(accessRule);
         context.SaveChanges();
 
-        var jwtService = new JwtService(configuration);
+        var jwtOptions = Options.Create(new JwtSettings
+        {
+            Key = configValues["Jwt:Key"] ?? "MySecretKeyForTestingPurposesOnlyMin32!!",
+            Issuer = configValues["Jwt:Issuer"] ?? "CameraAccessAPI",
+            Audience = configValues["Jwt:Audience"] ?? "CameraClients",
+            ExpiryMinutes = int.Parse(configValues["Jwt:ExpiryMinutes"] ?? "1")
+        });
+        var jwtLogger = new Mock<ILogger<JwtService>>().Object;
+        var jwtService = new JwtService(jwtOptions, jwtLogger);
+        
         var tokenService = new StreamTokenService(configuration, Mock.Of<ILogger<StreamTokenService>>());
         var service = new StreamAccessValidationService(
             tokenService,
